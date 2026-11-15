@@ -1,0 +1,31 @@
+{
+  "name": "dsh-sidechat",
+  "version": "0.1.13",
+  "private": true,
+  "type": "module",
+  "description": "在主会话右侧进行带背景的临时讨论，使用托管子代理与原生标签。",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/yuhhhong/dsh-sidechat.git" },
+  "homepage": "https://github.com/yuhhhong/dsh-sidechat#readme",
+  "bugs": { "url": "https://github.com/yuhhhong/dsh-sidechat/issues" },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "client.js", "src", "cordis.patch.yml", "locale", "icon.svg", "README.md", "README.en.md"],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node --check index.js && node --check client.js && node --check src/host/controller.js && node --check src/host/input.js && node --check src/host/remote.js"
+  },
+  "peerDependencies": { "@deepseek-ai/dsh": ">=0.2.2-rc.2 <0.3.0-0" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-api-session-controller", "@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-subagent"]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+# macOS 系统文件
+.DS_Store
+._*
+
+# 本地 IDE 配置
+.idea/
+
+# 依赖与测试产物
+node_modules/
+coverage/
+
+# 插件打包产物
+artifacts/
+*.tgz
+
+# 本地日志与环境配置
+*.log
+.env
+.env.*
+!.env.example
+
+/docs
+CONTEXT.md

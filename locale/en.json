@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Side chat",
+    "description": "Choose New side chat on the right sidebar's Start page to discuss a separate question with a snapshot of the main conversation's latest completed turn. Up to three side chats per main conversation; each active chat uses subagent capacity. Close its tab when finished. Refresh reconnects; restarting DSH does not reopen side chats, while host logs remain. Exploration and mutation boundaries use prompt instructions."
+  }
+}
