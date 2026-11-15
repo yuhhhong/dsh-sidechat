@@ -15,13 +15,15 @@ DeepSeek Harness（DSH）的侧边聊天插件。在主会话右侧栏打开带�
 
 ## 安装
 
-在 DSH 的 Web profile 中从 GitHub 安装：
+方式1. 在 DSH 的 Web profile 中执行一条命令即可从 GitHub 安装：
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-也可以在 DSH「插件 → 添加插件」中安装本目录。安装完成后重启 DSH，并刷新 DSH 页面。
+方式2. 在 DSH 的插件页中，点击添加插件，填入项目仓库地址：<https://github.com/yuhhhong/dsh-sidechat>
+
+安装后重启 DSH 并刷新页面。
 
 如需卸载：
 
@@ -70,6 +72,26 @@ npm test
 | [src/host/remote.js](<./src/host/remote.js>) | Typert Remote 接口定义与请求参数校验 |
 | [cordis.patch.yml](<./cordis.patch.yml>) | DSH 插件加载补丁配置 |
 
+
+## 持续集成与发布
+
+分支推送和 PR 会触发 [CI 工作流](<./.github/workflows/ci.yml>)，使用 Node.js 24 运行语法检查和测试。检查使用 Node.js 内置模块，无需安装依赖；需要 Electron 与 DSH 安装目录的宿主集成测试在普通 Node.js 环境中跳过。
+
+发布流程参考 dsh-skill-status：推送 `v` 前缀标签后，[发布工作流](<./.github/workflows/release.yml>) 核对标签与 [package.json](<./package.json>) 的版本，从 [更新日志](<./CHANGELOG.md>) 提取说明，并运行语法检查和测试。全部通过后自动创建 GitHub Release，不附带压缩包。
+
+发布前同步更新包版本、中英文 README 中的当前版本，并在更新日志中写入对应版本的说明，提交后再创建标签。标签与包版本不一致，或更新日志对应段落缺失、为空时，发布会失败。
+
+```sh
+git tag -a v0.1.13 -m "发布 v0.1.13"
+git push origin main
+git push origin v0.1.13
+```
+
+以上以当前版本为例，发布后续版本时替换版本号。可在发布前预览 Release 正文：
+
+```sh
+node scripts/release-notes.mjs
+```
 
 ## 许可证
 

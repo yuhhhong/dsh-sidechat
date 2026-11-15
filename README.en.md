@@ -15,13 +15,15 @@ A side chat plugin for DeepSeek Harness (DSH). It opens temporary side conversat
 
 ## Installation
 
-Install from GitHub in the DSH web profile:
+Option 1. Install from GitHub with one command in the DSH web profile:
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-You can also install this directory from **插件 → 添加插件** (Plugins → Add plugin) in DSH. After installation, restart DSH and refresh the DSH page.
+Option 2. In the DSH plugins page, click Add plugin and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>
+
+After installation, restart DSH and refresh the DSH page.
 
 To uninstall:
 
@@ -70,6 +72,26 @@ After changing Host or client files, exit and restart DSH to republish and reloa
 | [src/host/input.js](<./src/host/input.js>) | Model validation, file and image upload staging, and continuation content preparation |
 | [src/host/remote.js](<./src/host/remote.js>) | Typert Remote contract and request validation |
 | [cordis.patch.yml](<./cordis.patch.yml>) | DSH bundle patch configuration |
+
+## CI and Releases
+
+Branch pushes and pull requests trigger the [CI workflow](<./.github/workflows/ci.yml>), which runs syntax checks and tests on Node.js 24. These checks use Node.js built-in modules and require no dependency installation. The host integration test that requires Electron and a DSH installation directory is skipped in a regular Node.js environment.
+
+Following the dsh-skill-status release process, pushing a `v`-prefixed tag triggers the [release workflow](<./.github/workflows/release.yml>). It verifies the tag against the version in [package.json](<./package.json>), extracts the release notes from the [changelog](<./CHANGELOG.md>), and runs syntax checks and tests. Once all checks pass, it creates a GitHub Release without an attached archive.
+
+Before releasing, update the package version, the current version in both READMEs, and the corresponding changelog section, then commit the changes before creating the tag. A mismatched tag or a missing or empty changelog section fails the release.
+
+```sh
+git tag -a v0.1.13 -m "Release v0.1.13"
+git push origin main
+git push origin v0.1.13
+```
+
+The commands above use the current version as an example; replace it for subsequent releases. Preview the Release body before publishing:
+
+```sh
+node scripts/release-notes.mjs
+```
 
 ## License
 

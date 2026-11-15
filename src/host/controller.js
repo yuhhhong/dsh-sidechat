@@ -74,7 +74,8 @@ export class SidechatController {
     }
     const number = count + 1;
     const background = captureBackground(parent);
-    const permissionSnapshot = this.permissionSnapshot(background.seed);
+    // 没有已完成轮次时仍继承主会话当前权限，不把未完成对话加入背景。
+    const permissionSnapshot = this.permissionSnapshot(background.cutoffSeq === -1 ? parent.session.snapshotEvents() : background.seed);
     const selection = parent.model.current();
     const agentOptions = { ...parent.options, ...selection };
     if (selection !== undefined && selection.reasoningEffort === undefined) {

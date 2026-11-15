@@ -17,7 +17,7 @@
   "files": ["index.js", "client.js", "src", "cordis.patch.yml", "locale", "icon.svg", "README.md", "README.en.md"],
   "scripts": {
     "test": "node --test test/*.test.js",
-    "check": "node --check index.js && node --check client.js && node --check src/host/controller.js && node --check src/host/input.js && node --check src/host/remote.js"
+    "check": "node --check index.js && node --check client.js && node --check src/host/controller.js && node --check src/host/input.js && node --check src/host/remote.js && node --check scripts/release-notes.mjs"
   },
   "peerDependencies": { "@deepseek-ai/dsh": ">=0.2.2-rc.2 <0.3.0-0" },
   "dsh": {

@@ -385,6 +385,31 @@ test('默认权限取背景切点，首问保留该范围与子代理 never，�
   assert.equal(permissionKnobs(parent.session).sandbox, 'danger-full-access');
 });
 
+test('没有已完成轮次时按打开时的主会话权限启动，不继承全局完全权限或未完成对话', async () => {
+  for (const running of [false, true]) {
+    const state = harness();
+    state.ctx.permissionPresets.catalog = () => ({ ...permissions, defaultPreset: 'danger-full-access' });
+    const parent = parentFixture();
+    parent.events.splice(0, parent.events.length,
+      { seq: 0, type: 'permission/preset', data: { preset: 'read-only' } },
+      { seq: 1, type: 'sandbox/mode', data: { mode: 'read-only' } },
+      { seq: 2, type: 'approval/policy', data: { policy: 'ask' } });
+    if (running) {
+      parent.events.push({ seq: 3, type: 'turn/start', data: { turn: 1 } }, { seq: 4, type: 'user/message', data: { content: [{ type: 'text', text: '尚未完成的问题' }] } });
+    }
+    const record = state.controller.create(parent).record;
+    assert.equal(record.permission, 'read-only');
+    assert.equal(record.cutoffSeq, -1);
+    assert.equal(state.controller.records.get(record.id).seed.length, 1);
+    parent.events.push({ type: 'permission/preset', data: { preset: 'danger-full-access' } }, { type: 'sandbox/mode', data: { mode: 'danger-full-access' } }, { type: 'approval/policy', data: { policy: 'never' } });
+    await state.controller.send(parent, { id: record.id, text: '开始侧聊' });
+    assert.deepEqual(permissionKnobs(state.agents.get(record.id).session), { preset: 'read-only', sandbox: 'read-only', approval: 'never' });
+    assert.equal(state.permissionChanges.length, 0);
+    assert.equal(permissionKnobs(parent.session).sandbox, 'danger-full-access');
+    await state.controller.end(parent, record.id);
+  }
+});
+
 test('首问前显式选择相同权限只保存，启动时才完整应用原生预设', async () => {
   const state = harness();
   const parent = parentFixture();
