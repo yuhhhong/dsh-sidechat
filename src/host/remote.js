@@ -23,7 +23,7 @@ export const requestSchema = {
     text: { type: 'string', description: '用户问题，允许仅发送附件。' },
     attachments: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1 }, description: '当前侧聊上传接口返回的附件标识。' },
     selection: { ...selectionSchema, description: '本次选择的模型及思考强度。' },
-    permission: { type: 'string', minLength: 1, description: '当前侧聊选择的宿主权限预设。' },
+    permission: { type: 'string', minLength: 1, description: '当前侧聊选择的权限；default 为工作区内修改且不请求审批，其他值为宿主权限预设。' },
     delivery: { type: 'string', enum: ['queue', 'steer'], description: '续聊入队或引导当前回答。' },
     requestId: { type: 'string', minLength: 1, description: '调用方生成的消息请求标识，重复提交同一内容只接纳一次。' },
     clientTimeZone: { type: 'string', minLength: 1, description: '发送消息时的浏览器时区。' },

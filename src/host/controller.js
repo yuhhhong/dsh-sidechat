@@ -29,7 +29,7 @@ export class SidechatController {
       running: child?.status === 'running',
       model: currentSelection(record, child)?.model ?? null,
       selection: currentSelection(record, child),
-      permission: child === undefined ? record.permission : this.ctx.permissionPresets.current(child.session),
+      permission: child === undefined ? record.permission : this.currentPermission(child.session),
       error: record.error ?? null,
     };
   }
@@ -42,29 +42,21 @@ export class SidechatController {
     return record;
   }
 
-  permissionSnapshot(seed) {
-    const catalog = this.ctx.permissionPresets.catalog();
-    const defaults = this.ctx.permissionPresets.resolve(catalog.defaultPreset);
-    let preset = catalog.defaultPreset;
-    let sandbox = defaults.sandbox;
-    let approval = defaults.approval;
-    for (const event of seed) {
-      if (event.type === 'permission/preset') {
-        preset = event.data.preset;
-      } else if (event.type === 'sandbox/mode') {
-        sandbox = event.data.mode;
-      } else if (event.type === 'approval/policy') {
-        approval = event.data.policy;
-      }
+  currentPermission(session) {
+    if (this.ctx.sandboxPolicy.overrideOf(session) === 'workspace-write' && this.ctx.approval.overrideOf(session) === 'never') {
+      return 'default';
     }
-    const matches = (name) => {
-      const spec = this.ctx.permissionPresets.resolve(name);
-      return spec.sandbox === sandbox && spec.approval === approval;
-    };
-    const selected = catalog.options.find((option) => option.value === preset);
-    const selectedMatches = selected !== undefined && (matches(preset) || (preset === 'auto' && approval === 'never' && this.ctx.permissionPresets.resolve(preset).sandbox === sandbox));
-    const permission = selectedMatches ? preset : catalog.options.find((option) => matches(option.value))?.value ?? 'custom';
-    return { permission, preset, sandbox };
+    return this.ctx.permissionPresets.current(session);
+  }
+
+  applyPermission(session, permission) {
+    if (permission === 'default') {
+      // “默认”是侧聊专用组合，不写入宿主的预设名称。
+      session.append('sandbox/mode', { mode: 'workspace-write' });
+      session.append('approval/policy', { policy: 'never' });
+    } else {
+      this.ctx.permissionPresets.set(session, permission);
+    }
   }
 
   create(parent) {
@@ -74,8 +66,6 @@ export class SidechatController {
     }
     const number = count + 1;
     const background = captureBackground(parent);
-    // 没有已完成轮次时仍继承主会话当前权限，不把未完成对话加入背景。
-    const permissionSnapshot = this.permissionSnapshot(background.cutoffSeq === -1 ? parent.session.snapshotEvents() : background.seed);
     const selection = parent.model.current();
     const agentOptions = { ...parent.options, ...selection };
     if (selection !== undefined && selection.reasoningEffort === undefined) {
@@ -91,9 +81,7 @@ export class SidechatController {
       started: false,
       agentOptions,
       selection: selection === undefined ? undefined : { ...selection },
-      permission: permissionSnapshot.permission,
-      permissionSnapshot,
-      permissionExplicit: false,
+      permission: 'default',
       uploads: new Map(),
       requests: new Map(),
       submitting: null,
@@ -123,7 +111,8 @@ export class SidechatController {
       this.ctx.sessionController.modelCatalog(),
       this.ctx.skills.list({ scope: child ?? parent, cwd: child?.session.header.cwd ?? record.cwd, signal }),
     ]);
-    return { ...this.list(parent.id), record: this.describe(record), catalog: { models, permissions: this.ctx.permissionPresets.catalog(), skills: skills.filter((skill) => skill.invocation.userInvocable), selection: currentSelection(record, child) ?? models.default } };
+    const permissions = this.ctx.permissionPresets.catalog();
+    return { ...this.list(parent.id), record: this.describe(record), catalog: { models, permissions: { ...permissions, options: [{ value: 'default', name: '默认' }, ...permissions.options] }, skills: skills.filter((skill) => skill.invocation.userInvocable), selection: currentSelection(record, child) ?? models.default } };
   }
 
   async upload(parent, input, signal) {
@@ -172,14 +161,15 @@ export class SidechatController {
     }
     record.selecting = true;
     try {
-      this.ctx.permissionPresets.resolve(input.permission);
+      if (input.permission !== 'default') {
+        this.ctx.permissionPresets.resolve(input.permission);
+      }
       signal?.throwIfAborted();
       const child = this.requireChild(record);
       if (child !== undefined) {
-        this.ctx.permissionPresets.set(child.session, input.permission);
+        this.applyPermission(child.session, input.permission);
       }
       record.permission = input.permission;
-      record.permissionExplicit = true;
       return { ...this.list(parent.id), record: this.describe(record) };
     } finally {
       record.selecting = false;
@@ -278,13 +268,7 @@ export class SidechatController {
     }
     // 清除 seed 重放出的主会话待办，随后只接收侧聊的新输入。
     agent.inbox.clear();
-    if (record.permissionExplicit) {
-      this.ctx.permissionPresets.set(agent.session, record.permission);
-    } else {
-      // 宿主启动会覆盖 seed 的权限；恢复打开时的范围，同时保留托管子代理的 never 审批策略。
-      agent.session.append('sandbox/mode', { mode: record.permissionSnapshot.sandbox, source: 'delegation' });
-      agent.session.append('permission/preset', { preset: record.permissionSnapshot.preset });
-    }
+    this.applyPermission(agent.session, record.permission);
     const { provider, model, reasoningEffort } = record.agentOptions;
     if (provider !== undefined && model !== undefined) {
       agent.model.select({ provider, model, ...(reasoningEffort === undefined ? {} : { reasoningEffort }) });

@@ -55,6 +55,8 @@ function harness() {
   const ctx = {
     agents: { get: (id) => agents.get(id) },
     sessionController: { async modelCatalog() { return models; } },
+    sandboxPolicy: { overrideOf: (session) => permissionKnobs(session).sandbox },
+    approval: { overrideOf: (session) => permissionKnobs(session).approval },
     permissionPresets: {
       catalog: () => permissions,
       resolve(name) {
@@ -338,8 +340,9 @@ test('目录不启动 Agent，技能视角在首问前用主会话、启动后�
   assert.equal(state.skillLookups[0].scope, parent);
   assert.equal(state.skillLookups[0].cwd, '/project');
   assert.deepEqual(first.catalog.skills.map((skill) => skill.name), ['review']);
-  assert.equal(first.catalog.permissions, state.permissions);
-  assert.equal(first.record.permission, 'workspace-write');
+  assert.deepEqual(first.catalog.permissions.options.map((option) => option.value), ['default', ...state.permissions.options.map((option) => option.value)]);
+  assert.equal(state.permissions.options.some((option) => option.value === 'default'), false);
+  assert.equal(first.record.permission, 'default');
   assert.deepEqual(first.catalog.models.groups[0].models[0].reasoning.efforts.map((effort) => effort.id), ['low', 'high']);
   await state.controller.send(parent, { id: record.id, text: '开始' });
   const child = state.agents.get(record.id);
@@ -370,22 +373,27 @@ test('模型和思考强度在首问前后及回答中可选择，拒绝目录�
   assert.equal(Object.hasOwn(state.controller.records.get(record.id).agentOptions, 'reasoningEffort'), false);
 });
 
-test('默认权限取背景切点，首问保留该范围与子代理 never，不跟随主会话后续改动', async () => {
-  const state = harness();
-  const parent = parentFixture();
-  parent.events.splice(2, 0, { type: 'permission/preset', data: { preset: 'read-only' } }, { type: 'sandbox/mode', data: { mode: 'read-only' } });
-  parent.events.push({ type: 'permission/preset', data: { preset: 'danger-full-access' } }, { type: 'sandbox/mode', data: { mode: 'danger-full-access' } }, { type: 'approval/policy', data: { policy: 'never' } });
-  const record = state.controller.create(parent).record;
-  assert.equal(record.permission, 'read-only');
-  await state.controller.send(parent, { id: record.id, text: '开始' });
-  const child = state.agents.get(record.id);
-  assert.deepEqual(permissionKnobs(child.session), { preset: 'read-only', sandbox: 'read-only', approval: 'never' });
-  assert.equal(state.controller.list(parent.id).records[0].permission, 'custom');
-  assert.equal(state.permissionChanges.length, 0);
-  assert.equal(permissionKnobs(parent.session).sandbox, 'danger-full-access');
+test('打开时选中默认，启动后固定工作区内修改与 never，不继承主会话权限', async () => {
+  for (const preset of ['read-only', 'workspace-write', 'danger-full-access', 'auto']) {
+    const state = harness();
+    const parent = parentFixture();
+    const spec = permissionSpecs[preset];
+    parent.events.splice(2, 0, { type: 'permission/preset', data: { preset } }, { type: 'sandbox/mode', data: { mode: spec.sandbox } }, { type: 'approval/policy', data: { policy: spec.approval } });
+    const parentEvents = structuredClone(parent.events);
+    const record = state.controller.create(parent).record;
+    assert.equal(record.permission, 'default');
+    await state.controller.send(parent, { id: record.id, text: '开始' });
+    const child = state.agents.get(record.id);
+    assert.equal(permissionKnobs(child.session).sandbox, 'workspace-write');
+    assert.equal(permissionKnobs(child.session).approval, 'never');
+    assert.equal(state.controller.list(parent.id).records[0].permission, 'default');
+    assert.equal(child.session.snapshotEvents().some((event) => event.type === 'permission/preset' && event.data.preset === 'default'), false);
+    assert.equal(state.permissionChanges.length, 0);
+    assert.deepEqual(parent.events, parentEvents);
+  }
 });
 
-test('没有已完成轮次时按打开时的主会话权限启动，不继承全局完全权限或未完成对话', async () => {
+test('没有已完成轮次时仍使用侧聊默认权限，不继承全局完全权限或未完成对话', async () => {
   for (const running of [false, true]) {
     const state = harness();
     state.ctx.permissionPresets.catalog = () => ({ ...permissions, defaultPreset: 'danger-full-access' });
@@ -398,23 +406,25 @@ test('没有已完成轮次时按打开时的主会话权限启动，不继承�
       parent.events.push({ seq: 3, type: 'turn/start', data: { turn: 1 } }, { seq: 4, type: 'user/message', data: { content: [{ type: 'text', text: '尚未完成的问题' }] } });
     }
     const record = state.controller.create(parent).record;
-    assert.equal(record.permission, 'read-only');
+    assert.equal(record.permission, 'default');
     assert.equal(record.cutoffSeq, -1);
     assert.equal(state.controller.records.get(record.id).seed.length, 1);
     parent.events.push({ type: 'permission/preset', data: { preset: 'danger-full-access' } }, { type: 'sandbox/mode', data: { mode: 'danger-full-access' } }, { type: 'approval/policy', data: { policy: 'never' } });
     await state.controller.send(parent, { id: record.id, text: '开始侧聊' });
-    assert.deepEqual(permissionKnobs(state.agents.get(record.id).session), { preset: 'read-only', sandbox: 'read-only', approval: 'never' });
+    assert.equal(permissionKnobs(state.agents.get(record.id).session).sandbox, 'workspace-write');
+    assert.equal(permissionKnobs(state.agents.get(record.id).session).approval, 'never');
+    assert.equal(state.controller.list(parent.id).records[0].permission, 'default');
     assert.equal(state.permissionChanges.length, 0);
     assert.equal(permissionKnobs(parent.session).sandbox, 'danger-full-access');
     await state.controller.end(parent, record.id);
   }
 });
 
-test('首问前显式选择相同权限只保存，启动时才完整应用原生预设', async () => {
+test('首问前选择宿主权限只保存，启动时完整应用原生预设', async () => {
   const state = harness();
   const parent = parentFixture();
   const record = state.controller.create(parent).record;
-  const response = await state.controller.execute(parent, { action: 'selectPermission', id: record.id, permission: record.permission });
+  const response = await state.controller.execute(parent, { action: 'selectPermission', id: record.id, permission: 'workspace-write' });
   assert.equal(response.record.permission, 'workspace-write');
   assert.equal(state.starts.length, 0);
   assert.equal(state.permissionChanges.length, 0);
@@ -422,6 +432,25 @@ test('首问前显式选择相同权限只保存，启动时才完整应用原�
   const child = state.agents.get(record.id);
   assert.deepEqual(permissionKnobs(child.session), { preset: 'workspace-write', sandbox: 'workspace-write', approval: 'ask' });
   assert.deepEqual(state.permissionChanges, [{ session: child.session, permission: 'workspace-write' }]);
+});
+
+test('首问前可从宿主预设切回默认，启动后可在默认和宿主预设之间切换', async () => {
+  const state = harness();
+  const parent = parentFixture();
+  const record = state.controller.create(parent).record;
+  state.controller.selectPermission(parent, { id: record.id, permission: 'read-only' });
+  assert.equal(state.controller.selectPermission(parent, { id: record.id, permission: 'default' }).record.permission, 'default');
+  assert.equal(state.starts.length, 0);
+  await state.controller.send(parent, { id: record.id, text: '开始' });
+  const child = state.agents.get(record.id);
+  for (const permission of ['workspace-write', 'read-only', 'danger-full-access', 'auto']) {
+    assert.equal(state.controller.selectPermission(parent, { id: record.id, permission }).record.permission, permission);
+    assert.equal(state.controller.selectPermission(parent, { id: record.id, permission: 'default' }).record.permission, 'default');
+    assert.equal(permissionKnobs(child.session).sandbox, 'workspace-write');
+    assert.equal(permissionKnobs(child.session).approval, 'never');
+  }
+  child.session.append('sandbox/mode', { mode: 'read-only' });
+  assert.equal(state.controller.list(parent.id).records[0].permission, 'custom');
 });
 
 test('运行中可切换当前侧聊权限，自动审查按显式预设恢复 ask，其他会话不受影响', async () => {
@@ -445,15 +474,15 @@ test('运行中可切换当前侧聊权限，自动审查按显式预设恢复 a
   assert.equal(state.permissionChanges.length, 1);
 });
 
-test('继承自动审查默认保留 never，模型与权限切换仍受短暂提交锁约束', async () => {
+test('主会话自动审查不改变侧聊默认，模型与权限切换仍受短暂提交锁约束', async () => {
   const state = harness();
   const parent = parentFixture();
   parent.events.splice(2, 0, { type: 'permission/preset', data: { preset: 'auto' } }, { type: 'sandbox/mode', data: { mode: 'danger-full-access' } });
   const record = state.controller.create(parent).record;
-  assert.equal(record.permission, 'auto');
+  assert.equal(record.permission, 'default');
   await state.controller.send(parent, { id: record.id, text: '开始' });
   const child = state.agents.get(record.id);
-  assert.equal(state.controller.list(parent.id).records[0].permission, 'auto');
+  assert.equal(state.controller.list(parent.id).records[0].permission, 'default');
   assert.equal(permissionKnobs(child.session).approval, 'never');
   const stored = state.controller.records.get(record.id);
   stored.selecting = true;

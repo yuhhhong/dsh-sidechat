@@ -3,7 +3,7 @@ import { PROVIDER } from './src/host/background.js';
 import { registerSidechatRemote } from './src/host/remote.js';
 
 export const name = 'dsh-sidechat';
-export const inject = ['subagents', 'agents', 'tools', 'typert', 'typertGateway', 'sessionController', 'skills', 'attachments', 'llm', 'permissionPresets'];
+export const inject = ['subagents', 'agents', 'tools', 'typert', 'typertGateway', 'sessionController', 'skills', 'attachments', 'llm', 'permissionPresets', 'sandboxPolicy', 'approval'];
 
 export function apply(ctx) {
   const controller = new SidechatController(ctx);

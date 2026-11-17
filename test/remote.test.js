@@ -68,7 +68,7 @@ test('权限选择请求的 JSON Schema、解析和反射声明保持一致', ()
   const request = { action: 'selectPermission', id: 'side', permission: 'workspace-write' };
   assert.deepEqual(parseRequest(request), request);
   assert.ok(requestSchema.properties.action.enum.includes('selectPermission'));
-  assert.deepEqual(requestSchema.properties.permission, { type: 'string', minLength: 1, description: '当前侧聊选择的宿主权限预设。' });
+  assert.deepEqual(requestSchema.properties.permission, { type: 'string', minLength: 1, description: '当前侧聊选择的权限；default 为工作区内修改且不请求审批，其他值为宿主权限预设。' });
   const declaration = sidechatContribution().model.services[0].types[0].declaration;
   assert.match(declaration, /'selectPermission'/);
   assert.match(declaration, /permission\?: string/);

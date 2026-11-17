@@ -25,7 +25,7 @@ window.__ModuleLoader__.load({
         question: '发消息或创建任务',
         attach: '上传文件或图片', skills: '技能', noSkills: '没有匹配的 Skill', userOnly: '仅用户',
         model: '模型', reasoning: '推理等级', modelSearch: '搜索模型', noModels: '没有匹配的模型', back: '返回', defaultEffort: '默认', catalogLoading: '正在加载权限、模型和 Skill……', catalogRetry: '重新加载权限、模型和 Skill',
-        permission: '权限', permissionSelecting: '正在切换权限……', permissionCustom: '自定义', permissionReadOnly: '仅可查看', permissionWorkspaceWrite: '工作区内修改', permissionFullAccess: '完全权限', permissionAuto: '自动审查', cancel: '取消',
+        permission: '权限', permissionSelecting: '正在切换权限……', permissionCustom: '自定义', permissionDefault: '默认', permissionReadOnly: '仅可查看', permissionWorkspaceWrite: '工作区内修改', permissionFullAccess: '完全权限', permissionAuto: '自动审查', cancel: '取消',
         permissionFullTitle: '确认启用完全权限？', permissionFullDescription: '启用完全权限后，智能体将减少确认步骤，并且可以直接执行更多操作，包括敏感操作、文件修改或外部命令。仅建议在你信任当前任务时使用。', permissionAcknowledge: '我已了解风险，并愿意继续', permissionFullEnable: '启用完全权限',
         permissionAutoTitle: '确认启用自动审查（实验）？', permissionAutoDescription: '自动审查不使用沙箱。每次原生工具调用和 PTC 内层调用前，都会由与当前智能体相同的模型进行审查；审查拒绝的调用由你批准或拒绝。此功能仍属实验性，可能误放行或误拒绝，并会消耗额外 token。', permissionAutoEnable: '启用自动审查',
         uploading: '正在上传', uploadFailed: '上传失败', uploadReady: '上传完成', retryUpload: '重试上传', removeAttachment: '移除附件', openImage: '查看大图', closePreview: '关闭图片预览', fileLabel: '文件',
@@ -44,7 +44,7 @@ window.__ModuleLoader__.load({
         question: 'Send a message or create a task',
         attach: 'Upload files or images', skills: 'Skills', noSkills: 'No matching Skills', userOnly: 'User only',
         model: 'Model', reasoning: 'Reasoning effort', modelSearch: 'Search models', noModels: 'No matching models', back: 'Back', defaultEffort: 'Default', catalogLoading: 'Loading permissions, models and Skills…', catalogRetry: 'Reload permissions, models and Skills',
-        permission: 'Permissions', permissionSelecting: 'Switching permissions…', permissionCustom: 'Custom', permissionReadOnly: 'Read Only', permissionWorkspaceWrite: 'Workspace Write', permissionFullAccess: 'Full access', permissionAuto: 'Auto review', cancel: 'Cancel',
+        permission: 'Permissions', permissionSelecting: 'Switching permissions…', permissionCustom: 'Custom', permissionDefault: 'Default', permissionReadOnly: 'Read Only', permissionWorkspaceWrite: 'Workspace Write', permissionFullAccess: 'Full access', permissionAuto: 'Auto review', cancel: 'Cancel',
         permissionFullTitle: 'Enable Full access?', permissionFullDescription: 'Full access reduces confirmation steps and lets the agent perform more actions directly, including sensitive operations, file changes, or external commands. Only use it when you trust the current task.', permissionAcknowledge: 'I understand the risks and want to continue', permissionFullEnable: 'Enable Full access',
         permissionAutoTitle: 'Enable Auto review (experimental)?', permissionAutoDescription: 'Auto review runs without a sandbox. Before every native tool call and PTC inner call, the same model as the current agent reviews whether to allow it; you approve or reject each call it denies. This feature is experimental, can falsely allow or deny actions, and uses additional tokens.', permissionAutoEnable: 'Enable Auto review',
         uploading: 'Uploading', uploadFailed: 'Upload failed', uploadReady: 'Upload complete', retryUpload: 'Retry upload', removeAttachment: 'Remove attachment', openImage: 'View full image', closePreview: 'Close image preview', fileLabel: 'File',
@@ -1602,13 +1602,14 @@ window.__ModuleLoader__.load({
           const menuId = React.useId();
           const titleId = React.useId();
           const descriptionId = React.useId();
-          const labels = { 'read-only': 'permissionReadOnly', 'workspace-write': 'permissionWorkspaceWrite', 'danger-full-access': 'permissionFullAccess', auto: 'permissionAuto', custom: 'permissionCustom' };
+          const labels = { default: 'permissionDefault', 'read-only': 'permissionReadOnly', 'workspace-write': 'permissionWorkspaceWrite', 'danger-full-access': 'permissionFullAccess', auto: 'permissionAuto', custom: 'permissionCustom' };
           const labelOf = (option) => labels[option.value] === undefined ? option.name : t(labels[option.value]);
           const current = options.find((option) => option.value === value);
           const label = labelOf(current ?? { value, name: value ?? t('permission') });
           const glyph = (permission) => {
             const paths = { 'read-only': 'M8 1.5 13 3.5v4c0 3-2.5 5.5-5 7-2.5-1.5-5-4-5-7v-4Z M5.5 8l1.5 1.5 3.5-3.5', 'workspace-write': 'M3 5V3h4l1 1h5v3M3 9v4h5M1.5 7.5l1.5 1.5 1.5-1.5M10.5 9.5l2 2M9 13l1.5-.5 3-3-1-1-3 3Z', 'danger-full-access': 'M8 1.5 13 3.5v4c0 3-2.5 5.5-5 7-2.5-1.5-5-4-5-7v-4Z M8 4v7', auto: 'M5 2h6l3 6-3 6H5L2 8Z M5.5 10.5 8 5l2.5 5.5M6.5 8.5h3' };
-            return paths[permission] === undefined ? null : h('span', { className: 'dsh-sidechat-permission-icon' }, h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, h('path', { d: paths[permission] })));
+            const path = paths[permission === 'default' ? 'workspace-write' : permission];
+            return path === undefined ? null : h('span', { className: 'dsh-sidechat-permission-icon' }, h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, h('path', { d: path })));
           };
           const chevron = h('svg', { className: `dsh-sidechat-chevron${pending ? ' dsh-sidechat-spinner' : ''}`, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }, h('path', { d: pending ? 'M8 2a6 6 0 1 1-6 6' : 'm4 6 4 4 4-4' }));
           const close = (restoreFocus = false) => {
