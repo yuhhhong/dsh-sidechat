@@ -9,6 +9,7 @@ A side chat plugin for DeepSeek Harness (DSH). It opens temporary side conversat
 - **Background snapshot and context isolation**: Captures a snapshot of the main conversation up to the latest completed turn when opened. Later progress in the main conversation is not automatically synced, and side chat replies or completion notices are not sent back to the main conversation.
 - **On-demand managed subagents**: Runs each side chat on a DSH-managed continuable subagent. Opening a blank tab only saves the background snapshot and settings; the subagent is started only when you send the first message. Collapsing the sidebar or switching conversations keeps active side chats running.
 - **Native-style unified composer**: Uses the same composer for the first question and follow-up turns, with support for file uploads, pasted images, `/` skill search and invocation, permission presets, model selection, and reasoning effort.
+- **Quote in side chat**: Select text in the main conversation and click **引用到侧聊** (Quote in side chat), beside the native quote action. Quotes stay inline with the draft, show their full text on hover when truncated, support removal with the icon button, Backspace, or Delete, and can be sent without additional text. With no open side chat, the action creates a blank tab first.
 - **Live permission and model switching**: Switch permission presets, models, and reasoning effort before the first message or while a response is running. Permission changes apply to subsequent tool calls in that side chat, while model and reasoning effort changes take effect on the next model execution step without interrupting in-flight work.
 - **Prompt-defined execution boundaries**: Uses boundary instructions to treat inherited history as reference context only rather than active tasks. By default, the assistant performs non-mutating exploration, avoids interacting with subagents, and requires explicit user requests in the side chat before modifying state or messaging the main conversation.
 - **Lifecycle cleanup and catalog filtering**: Reconnects active side chats and sent messages across page refreshes within the same DSH run, and does not reopen old side chat tabs after restarting DSH. Closing a tab with `×` stops pending work, releases subagent capacity, and hides the finished entry from the header **子智能体** (Subagents) catalog.
@@ -31,7 +32,7 @@ To uninstall:
 dsh plugin --profile web remove dsh-sidechat
 ```
 
-The current plugin version is `0.1.13`. The supported DSH version range is `>=0.2.2-rc.2 <0.3.0-0`.
+The current plugin version is `0.1.14`. The supported DSH version range is `>=0.2.2-rc.2 <0.3.0-0`.
 
 ## Usage
 
@@ -39,6 +40,7 @@ The current plugin version is `0.1.13`. The supported DSH version range is `>=0.
 2. Enter a question, upload files or paste images, type `/` to select a skill, or adjust the permission preset, model, and reasoning effort. A blank tab starts its managed subagent only when the first message is sent.
 3. While the assistant is replying, you can queue follow-up messages, stop the current turn, or switch permissions, models, and reasoning effort.
 4. When finished, click `×` on the side chat tab to close it and release subagent capacity. If cleanup fails, the tab reopens and displays the error.
+5. Select text in the main conversation and click **引用到侧聊** (Quote in side chat). It uses the active side chat when expanded; otherwise it uses the first available side chat in tab-bar order. The quote is inserted at the saved caret, or at the end of a selection without replacing it. The target opens and its composer receives focus. Send the draft manually when ready.
 
 ## Subagent Capacity and Behavior
 
@@ -82,9 +84,9 @@ Following the dsh-skill-status release process, pushing a `v`-prefixed tag trigg
 Before releasing, update the package version, the current version in both READMEs, and the corresponding changelog section, then commit the changes before creating the tag. A mismatched tag or a missing or empty changelog section fails the release.
 
 ```sh
-git tag -a v0.1.13 -m "Release v0.1.13"
+git tag -a v0.1.14 -m "Release v0.1.14"
 git push origin main
-git push origin v0.1.13
+git push origin v0.1.14
 ```
 
 The commands above use the current version as an example; replace it for subsequent releases. Preview the Release body before publishing:

@@ -17,6 +17,7 @@ window.__ModuleLoader__.load({
     const SidechatContext = React.createContext(null);
     const dictionaries = {
       zh: {
+        quoteToSidechat: '引用到侧聊', quotePreview: '查看引用全文', quoteRemove: '移除引用', quoteUnavailable: '当前侧聊正在关闭，暂时无法引用。',
         create: '新建侧边聊天', prefix: '侧边聊天', count: '侧聊',
         hint: '侧聊会占用子代理名额，用完请及时关闭。', limit: '当前主会话最多打开 3 个侧聊，请先关闭不用的侧聊。',
         loading: '正在读取侧聊……', opening: '正在连接原生会话……', creating: '正在保存背景……', starting: '正在启动侧聊……',
@@ -35,6 +36,7 @@ window.__ModuleLoader__.load({
         error: '读取失败，请重试。', unavailable: '无法读取侧聊。', commandFailed: '侧聊命令执行失败。', busy: '操作正在进行，请稍候。', disposed: '侧聊界面已卸载。',
       },
       en: {
+        quoteToSidechat: 'Quote in side chat', quotePreview: 'View full quote', quoteRemove: 'Remove quote', quoteUnavailable: 'The side chats are closing. Unable to quote right now.',
         create: 'New side chat', prefix: 'Side chat', count: 'Side chats',
         hint: 'Side chats use subagent capacity. Close them when finished.', limit: 'Up to 3 side chats per conversation. Close an unused one first.',
         loading: 'Loading side chat…', opening: 'Connecting to the native conversation…', creating: 'Saving background…', starting: 'Starting side chat…',
@@ -78,6 +80,27 @@ window.__ModuleLoader__.load({
       .dsh-sidechat-launch { display: flex; flex: 1 1 auto; flex-direction: column; box-sizing: border-box; min-height: 0; min-width: 0; overflow-y: auto; margin: 0; padding: 12px 16px 4px; }
       .dsh-sidechat-launch-card { display: flex; flex: none; flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box; margin-top: auto; padding-top: 8px; border: 0; border-radius: var(--dsw-radius-panel); background: var(--dsw-specific-input-major); box-shadow: var(--dsw-elevation-soft); --dsw-elevation-stroke-color: var(--dsw-alias-border-l2); font-size: var(--dsh-content-font-size, 14px); line-height: calc(24px + var(--dsh-content-font-delta, 0px)); }
       .dsh-sidechat-launch-input { display: block; box-sizing: border-box; width: calc(100% - 4px); min-height: 36px; max-height: calc(14 * (24px + var(--dsh-content-font-delta, 0px))); padding: 4px 8px 0 14px; border: 0; outline: none; resize: none; overflow-y: auto; background: transparent; color: var(--dsw-alias-label-primary); caret-color: var(--dsw-alias-state-business-primary); font: inherit; line-height: inherit; overflow-wrap: anywhere; }
+      .dsh-sidechat-rich-input { white-space: pre-wrap; }
+      .dsh-sidechat-rich-input[data-empty="true"]::before { content: attr(data-placeholder); color: var(--dsw-alias-label-caption); pointer-events: none; }
+      .dsh-sidechat-rich-input[aria-disabled="true"] { color: var(--dsw-alias-label-tertiary); }
+      .dsh-sidechat-quote { display: inline-flex; align-items: baseline; gap: 4px; box-sizing: border-box; max-width: min(80%, 300px); margin: 0; padding: 0; vertical-align: baseline; color: var(--dsw-alias-state-business-primary); font-size: var(--dsh-content-font-size, 14px); line-height: calc(20px + var(--dsh-content-font-delta, 0px)); }
+      .dsh-sidechat-quote-body { min-width: 0; padding: 0; border: none; outline: none; background: none; color: inherit; font: inherit; line-height: inherit; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .dsh-sidechat-quote-remove { display: grid; place-items: center; align-self: center; flex: none; width: 16px; height: 16px; padding: 0; color: inherit; user-select: none; border: none; border-radius: 50%; corner-shape: round; background: transparent; cursor: pointer; }
+      .dsh-sidechat-quote-remove:disabled { cursor: default; }
+      .dsh-sidechat-quote-mark, .dsh-sidechat-quote-close { grid-area: 1 / 1; transition: opacity .12s ease; }
+      .dsh-sidechat-quote-close { opacity: 0; }
+      .dsh-sidechat-quote[data-removable]:focus-within .dsh-sidechat-quote-mark { opacity: 0; }
+      .dsh-sidechat-quote[data-removable]:focus-within .dsh-sidechat-quote-close { opacity: 1; }
+      @media (hover: hover) { .dsh-sidechat-quote[data-removable]:hover .dsh-sidechat-quote-mark { opacity: 0; } .dsh-sidechat-quote[data-removable]:hover .dsh-sidechat-quote-close { opacity: 1; } }
+      @media (hover: none) { .dsh-sidechat-quote[data-removable] .dsh-sidechat-quote-mark { opacity: 0; } .dsh-sidechat-quote[data-removable] .dsh-sidechat-quote-close { opacity: 1; } }
+      .dsh-sidechat-quote-preview { position: fixed; inset: auto; z-index: 100; box-sizing: border-box; width: max-content; max-width: min(420px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow: auto; margin: 0; padding: 8px; border: 0; border-radius: var(--dsw-radius-lg); color: var(--dsw-alias-label-primary); background: var(--dsw-specific-menu); backdrop-filter: var(--dsw-menu-backdrop-filter); box-shadow: var(--dsw-elevation-panel); }
+      .dsh-sidechat-quote-full { display: block; padding: 8px 10px; color: var(--dsw-alias-label-primary); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 20px; }
+      .dsh-sidechat-quote-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+      .dsh-sidechat-quote-action { padding: 5px 10px; border: none; border-radius: 999px; corner-shape: round; background: var(--dsw-alias-button-floating-fill); --dsw-elevation-stroke-color: var(--dsw-alias-border-l3); box-shadow: var(--dsw-elevation-panel); color: var(--dsw-alias-label-primary); font: var(--dsw-font-xs-13); cursor: pointer; }
+      .dsh-sidechat-quote-action:focus-visible { background: var(--dsw-alias-button-floating-hover); }
+      @media (hover: hover) { .dsh-sidechat-quote-action:hover { background: var(--dsw-alias-button-floating-hover); } }
+      .dsh-sidechat-quote-action:disabled { opacity: .5; cursor: progress; }
+      .dsh-sidechat-quote-actions [role="alert"] { flex-basis: 100%; max-width: 320px; }
       .dsh-sidechat-launch-input::placeholder { color: var(--dsw-alias-label-caption); }
       .dsh-sidechat-launch-input:disabled { color: var(--dsw-alias-label-tertiary); }
       .dsh-sidechat-launch-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; padding: 2px 8px 6px; }
@@ -234,6 +257,105 @@ window.__ModuleLoader__.load({
       return changed ? { ...snapshot, projectionsBySession } : snapshot;
     }
 
+    const QUOTE_MARKER = '\uFFFC';
+    function insertDraftQuote(draft, text, id) {
+      const offset = draft.caret ?? draft.text.length;
+      return { text: draft.text.slice(0, offset) + QUOTE_MARKER + draft.text.slice(offset), quotes: [...draft.quotes.map((quote) => quote.offset >= offset ? { ...quote, offset: quote.offset + 1 } : quote), { id, offset, text }].sort((a, b) => a.offset - b.offset), caret: offset + 1, requestId: null, error: null };
+    }
+    function replaceDraftRange(draft, start, end, text) {
+      return { text: draft.text.slice(0, start) + text + draft.text.slice(end), quotes: draft.quotes.filter((quote) => quote.offset < start || quote.offset >= end).map((quote) => quote.offset >= end ? { ...quote, offset: quote.offset + text.length - (end - start) } : quote), caret: start + text.length, requestId: null, error: null };
+    }
+    function removeDraftQuote(draft, quote) {
+      const end = quote.offset + 1 + Number(draft.text[quote.offset + 1] === ' ');
+      return replaceDraftRange(draft, quote.offset, end, '');
+    }
+    function deleteDraftQuote(draft, selection, backward) {
+      if (selection === null) {
+        return null;
+      }
+      if (selection.start !== selection.end) {
+        return draft.quotes.some((quote) => quote.offset >= selection.start && quote.offset < selection.end) ? replaceDraftRange(draft, selection.start, selection.end, '') : null;
+      }
+      const offset = backward ? selection.start - 1 : selection.start;
+      const quote = draft.quotes.find((item) => item.offset === offset || (backward && draft.text[offset] === ' ' && item.offset === offset - 1));
+      return quote === undefined ? null : removeDraftQuote(draft, quote);
+    }
+    function quotePreviewPosition(anchor, size, viewport) {
+      const left = Math.max(8, Math.min(anchor.left, viewport.width - size.width - 8));
+      const below = anchor.bottom + 8;
+      const top = below + size.height <= viewport.height - 8 ? below : Math.max(8, anchor.top - size.height - 8);
+      return { left, top };
+    }
+    function serializeQuoteDraft(draft) {
+      if (draft.quotes.length === 0) {
+        return draft.text;
+      }
+      const tokens = [];
+      let cursor = 0;
+      for (const quote of draft.quotes) {
+        tokens.push({ kind: 'text', text: draft.text.slice(cursor, quote.offset) }, { kind: 'quote', text: quote.text });
+        cursor = quote.offset + 1;
+      }
+      tokens.push({ kind: 'text', text: draft.text.slice(cursor) });
+      return tokens.map((token, index) => {
+        if (token.kind === 'quote') {
+          return token.text.replace(/\r\n?/gu, '\n').split('\n').map((line) => `> ${line}`).join('\n');
+        }
+        let text = token.text;
+        if (index === 0 || tokens[index - 1]?.kind === 'quote') {
+          text = text.trimStart();
+        }
+        if (index === tokens.length - 1 || tokens[index + 1]?.kind === 'quote') {
+          text = text.trimEnd();
+        }
+        if (text === '') {
+          return index > 0 && index < tokens.length - 1 ? '\n\n' : '';
+        }
+        return `${index > 0 ? '\n\n' : ''}${text}${index < tokens.length - 1 ? '\n\n' : ''}`;
+      }).join('');
+    }
+    function serializeQuoteClipboard(draft) {
+      let result = '';
+      let cursor = 0;
+      for (const quote of draft.quotes) {
+        result += draft.text.slice(cursor, quote.offset);
+        if (quote.offset > 0 && !result.endsWith('\n\n')) {
+          result += '\n\n';
+        }
+        result += serializeQuoteDraft({ text: QUOTE_MARKER, quotes: [{ ...quote, offset: 0 }] });
+        cursor = quote.offset + 1;
+        if (cursor < draft.text.length) {
+          result += '\n\n';
+        }
+      }
+      return result + draft.text.slice(cursor);
+    }
+    function orderedSidechatTabs(layout) {
+      const tabs = [];
+      const visit = (id) => {
+        const node = layout.nodes[id];
+        if (node.kind === 'split') {
+          node.children.forEach(visit);
+        } else {
+          tabs.push(...node.tabs.map((tabId) => layout.tabs[tabId]).filter((tab) => tab.kind === KIND));
+        }
+      };
+      visit(layout.rootId);
+      layout.floats.forEach(visit);
+      return tabs;
+    }
+    function selectQuoteTarget(state, layout, parentId) {
+      const available = (tab) => {
+        const target = parseAddress(tab.contentId);
+        const record = state.records.find((item) => item.id === target?.id);
+        return target?.parentId === parentId && target.bootId === state.bootId && record !== undefined && record.status !== 'closing' && !state.ending[record.id];
+      };
+      const tabs = orderedSidechatTabs(layout).filter(available);
+      const pane = layout.nodes[layout.activePaneId];
+      const active = layout.tabs[pane?.activeTabId];
+      return (layout.expanded || pane?.host === 'float') && active?.kind === KIND && available(active) ? active : tabs[0];
+    }
+
     class Manager {
       constructor(ctx, t) {
         this.ctx = ctx;
@@ -261,7 +383,7 @@ window.__ModuleLoader__.load({
       }
       composer(id) {
         if (!this.composers.has(id)) {
-          const model = { snapshot: { text: '', attachments: [], catalog: null, catalogLoading: false, catalogError: null, selectionBusy: false, permissionBusy: false, error: null, runtime: null, requestId: null }, listeners: new Set(), catalogVersion: 0 };
+          const model = { snapshot: { text: '', quotes: [], caret: null, focusVersion: 0, attachments: [], catalog: null, catalogLoading: false, catalogError: null, selectionBusy: false, permissionBusy: false, error: null, runtime: null, requestId: null }, listeners: new Set(), catalogVersion: 0 };
           model.getSnapshot = () => model.snapshot;
           model.subscribe = (fn) => { model.listeners.add(fn); return () => model.listeners.delete(fn); };
           this.composers.set(id, model);
@@ -384,9 +506,41 @@ window.__ModuleLoader__.load({
         }
         this.updateComposer(id, { attachments: model.snapshot.attachments.filter((item) => item.localId !== localId), requestId: null, error: null });
       }
+      async quote(parentId, text, layout) {
+        const model = this.parent(parentId);
+        if (model.snapshot.bootId === null || model.snapshot.readError) {
+          const data = await this.refresh(parentId);
+          if (data === undefined) {
+            throw new Error(model.snapshot.error ?? this.t('unavailable'));
+          }
+        }
+        let record;
+        let address;
+        if (model.snapshot.records.length === 0) {
+          const result = await this.act(parentId, { action: 'create' });
+          record = result.record;
+          address = addressOf(result.bootId, parentId, record.id);
+        } else {
+          const tab = selectQuoteTarget(model.snapshot, layout, parentId);
+          if (tab === undefined) {
+            throw new Error(this.t('quoteUnavailable'));
+          }
+          address = tab.contentId;
+          record = model.snapshot.records.find((item) => item.id === parseAddress(address).id);
+        }
+        if (this.disposed || this.ctx.sidebarRight.mounted.getSnapshot() !== parentId) {
+          throw new Error(this.t('quoteUnavailable'));
+        }
+        this.ctx.sidebarRight.openResource(address);
+        const draft = this.composer(record.id).snapshot;
+        this.updateComposer(record.id, { ...insertDraftQuote(draft, text, crypto.randomUUID()), focusVersion: draft.focusVersion + 1 });
+        return record.id;
+      }
       async submit(parentId, record, selection) {
         const model = this.composer(record.id);
-        const { text, attachments } = model.snapshot;
+        const submitted = model.snapshot;
+        const { attachments } = submitted;
+        const text = serializeQuoteDraft(submitted);
         if (text.trim() === '' && attachments.length === 0) {
           this.updateComposer(record.id, { error: this.t('empty') });
           return;
@@ -404,7 +558,9 @@ window.__ModuleLoader__.load({
               URL.revokeObjectURL(attachment.preview);
             }
           }
-          this.updateComposer(record.id, { text: '', attachments: [], requestId: null });
+          // 发送期间仍能加入引用；回执只消费本次提交的草稿。
+          const quotes = model.snapshot.quotes.filter((quote) => !submitted.quotes.some((sent) => sent.id === quote.id)).map((quote, offset) => ({ ...quote, offset }));
+          this.updateComposer(record.id, { text: QUOTE_MARKER.repeat(quotes.length), quotes, caret: quotes.length, attachments: model.snapshot.attachments.filter((item) => !attachments.includes(item)), requestId: null });
         } catch (error) {
           this.updateComposer(record.id, { error: errorText(error) });
         }
@@ -967,6 +1123,330 @@ window.__ModuleLoader__.load({
         },
       };
     }
+    // 引用在编辑器中占一个字符；DOM 只由这个组件维护，完整内容留在草稿模型中。
+    function readQuoteEditor(root, known, point) {
+      let text = '';
+      let caret = null;
+      const quotes = [];
+      const visit = (node) => {
+        if (node.nodeType === 3) {
+          if (point?.container === node) {
+            caret = text.length + point.offset;
+          }
+          text += node.textContent;
+          return;
+        }
+        const id = node.dataset?.quoteId;
+        if (id !== undefined) {
+          const quote = known.find((item) => item.id === id);
+          if (quote !== undefined) {
+            quotes.push({ ...quote, offset: text.length });
+          }
+          // 引用记录被删除后，旧 DOM 节点仍占位，保证同步时能识别并移除它。
+          text += QUOTE_MARKER;
+          return;
+        }
+        if (node.nodeName === 'BR') {
+          if (node.nextSibling !== null) {
+            text += '\n';
+          }
+          return;
+        }
+        if ((node.nodeName === 'DIV' || node.nodeName === 'P') && node.previousSibling !== null) {
+          text += '\n';
+        }
+        node.childNodes.forEach((child, index) => {
+          if (point?.container === node && point.offset === index) {
+            caret = text.length;
+          }
+          visit(child);
+        });
+        if (point?.container === node && point.offset === node.childNodes.length) {
+          caret = text.length;
+        }
+      };
+      root.childNodes.forEach((node, index) => {
+        if (point?.container === root && point.offset === index) {
+          caret = text.length;
+        }
+        visit(node);
+      });
+      if (point?.container === root && point.offset === root.childNodes.length) {
+        caret = text.length;
+      }
+      if (root.childNodes.length === 1 && root.firstChild.nodeName === 'BR') {
+        text = '';
+      }
+      return { text, quotes, ...(point === undefined ? {} : { caret }) };
+    }
+    function QuoteEditor({ draft, manager, recordId, editorRef, disabled, placeholder, onTextChange, onCursorChange, t, ...handlers }) {
+      const root = React.useRef(null);
+      const latest = React.useRef(draft);
+      const knownQuotes = React.useRef(new Map());
+      for (const quote of draft.quotes) {
+        knownQuotes.current.set(quote.id, quote);
+      }
+      latest.current = draft;
+      const [preview, setPreview] = React.useState(null);
+      const previewCard = React.useRef(null);
+      const previewLeave = React.useRef(null);
+      const composing = React.useRef(false);
+      const keepPreview = () => {
+        window.clearTimeout(previewLeave.current);
+        previewLeave.current = null;
+      };
+      const closePreview = () => {
+        keepPreview();
+        setPreview(null);
+      };
+      const leavePreview = () => {
+        keepPreview();
+        previewLeave.current = window.setTimeout(() => { previewLeave.current = null; setPreview(null); }, 100);
+      };
+      const showPreview = (chip) => {
+        if (chip === null) {
+          return;
+        }
+        keepPreview();
+        const body = chip.querySelector('[data-quote-preview]');
+        if (body.scrollWidth <= body.clientWidth) {
+          setPreview(null);
+          return;
+        }
+        const quote = latest.current.quotes.find((item) => item.id === chip.dataset.quoteId);
+        setPreview((current) => current?.anchor === chip ? current : { id: quote.id, text: quote.text, anchor: chip });
+      };
+      const selectionRange = () => {
+        const selection = window.getSelection();
+        if (selection === null || selection.rangeCount === 0) {
+          return null;
+        }
+        const range = selection.getRangeAt(0);
+        if (!root.current.contains(range.startContainer) || !root.current.contains(range.endContainer)) {
+          return null;
+        }
+        const offset = (container, position) => readQuoteEditor(root.current, [...knownQuotes.current.values()], { container, offset: position }).caret;
+        return { start: offset(range.startContainer, range.startOffset), end: offset(range.endContainer, range.endOffset) };
+      };
+      const restore = (start, end = start) => {
+        const locate = (offset) => {
+          let left = offset;
+          const visit = (node) => {
+            if (node.nodeType === 3) {
+              if (left <= node.textContent.length) {
+                return [node, left];
+              }
+              left -= node.textContent.length;
+            } else if (node.dataset?.quoteId !== undefined || node.nodeName === 'BR') {
+              const index = Array.prototype.indexOf.call(node.parentNode.childNodes, node);
+              if (left <= 1) {
+                return [node.parentNode, index + left];
+              }
+              left -= 1;
+            } else {
+              for (const child of node.childNodes) {
+                const found = visit(child);
+                if (found !== undefined) {
+                  return found;
+                }
+              }
+            }
+          };
+          return visit(root.current) ?? [root.current, root.current.childNodes.length];
+        };
+        const range = document.createRange();
+        range.setStart(...locate(start));
+        range.setEnd(...locate(end));
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      };
+      const sync = () => {
+        const value = readQuoteEditor(root.current, [...knownQuotes.current.values()]);
+        const caret = selectionRange()?.end ?? value.text.length;
+        manager.updateComposer(recordId, { ...value, caret, requestId: null, error: null });
+        onTextChange(value.text, caret);
+      };
+      const applyDraftEdit = (next) => {
+        closePreview();
+        manager.updateComposer(recordId, { ...next, focusVersion: latest.current.focusVersion + 1 });
+        onTextChange(next.text, next.caret);
+      };
+      React.useLayoutEffect(() => {
+        const element = root.current;
+        element.setSelectionRange = restore;
+        editorRef.current = element;
+        const current = readQuoteEditor(element, draft.quotes);
+        if (!composing.current && (current.text !== draft.text || current.quotes.length !== draft.quotes.length || current.quotes.some((quote, index) => quote.id !== draft.quotes[index]?.id || quote.text !== draft.quotes[index]?.text))) {
+          const focused = document.activeElement === element;
+          const nodes = [];
+          let cursor = 0;
+          for (const quote of draft.quotes) {
+            nodes.push(document.createTextNode(draft.text.slice(cursor, quote.offset)));
+            const chip = document.createElement('span');
+            chip.contentEditable = 'false';
+            chip.dataset.quoteId = quote.id;
+            chip.className = 'dsh-sidechat-quote';
+            chip.toggleAttribute('data-removable', !disabled);
+            const body = document.createElement('span');
+            body.dataset.quotePreview = quote.id;
+            body.className = 'dsh-sidechat-quote-body';
+            body.textContent = quote.text;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.dataset.quoteRemove = quote.id;
+            remove.className = 'dsh-sidechat-quote-remove';
+            remove.innerHTML = `<svg width="16" height="16" class="dsh-sidechat-quote-mark" viewBox="0 0 16 16" fill="none" aria-hidden="true"><g transform="translate(6.8 2.4)">
+              <path d="M2.8125 0.583008L3.2002 1.16602C2.43912 1.6713 1.88491 2.41238 1.60547 3.25684H2.98926V6.70605H0V4.52148C1.96593e-05 2.70313 0.9109 1.00575 2.42578 0L2.8125 0.583008Z" fill="currentColor"/>
+              <path d="M7.50781 0.583008L7.89551 1.16602C7.13443 1.6713 6.58022 2.41238 6.30078 3.25684H7.68457V6.70605H4.69531V4.52148C4.69533 2.70313 5.60621 1.00575 7.12109 0L7.50781 0.583008Z" fill="currentColor"/>
+              </g></svg><svg width="12" height="12" class="dsh-sidechat-quote-close" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+            remove.disabled = disabled;
+            remove.setAttribute('aria-label', t('quoteRemove'));
+            chip.append(remove, body);
+            nodes.push(chip);
+            cursor = quote.offset + 1;
+          }
+          nodes.push(document.createTextNode(draft.text.slice(cursor)));
+          element.replaceChildren(...nodes);
+          if (focused) {
+            restore(draft.caret ?? draft.text.length);
+          }
+        }
+        for (const button of element.querySelectorAll('[data-quote-remove]')) {
+          button.disabled = disabled;
+          button.parentElement.toggleAttribute('data-removable', !disabled);
+        }
+      }, [draft.text, draft.quotes, disabled]);
+      React.useLayoutEffect(() => {
+        if (draft.focusVersion > 0) {
+          root.current.focus({ preventScroll: true });
+          restore(draft.caret ?? draft.text.length);
+        }
+      }, [draft.focusVersion]);
+      React.useEffect(() => {
+        const changed = () => {
+          const range = selectionRange();
+          if (range !== null && latest.current.caret !== range.end) {
+            manager.updateComposer(recordId, { caret: range.end });
+            onCursorChange(range.end);
+          }
+        };
+        document.addEventListener('selectionchange', changed);
+        return () => { document.removeEventListener('selectionchange', changed); editorRef.current = null; };
+      }, []);
+      React.useEffect(() => () => window.clearTimeout(previewLeave.current), []);
+      React.useLayoutEffect(() => {
+        const element = previewCard.current;
+        if (preview === null) {
+          return;
+        }
+        if (!preview.anchor.isConnected || !draft.quotes.some((quote) => quote.id === preview.id)) {
+          closePreview();
+          return;
+        }
+        element.showPopover();
+        const position = quotePreviewPosition(preview.anchor.getBoundingClientRect(), { width: element.offsetWidth, height: element.offsetHeight }, { width: window.innerWidth, height: window.innerHeight });
+        element.style.left = `${position.left}px`;
+        element.style.top = `${position.top}px`;
+        const escape = (event) => {
+          if (event.key === 'Escape') {
+            closePreview();
+          }
+        };
+        const scroll = (event) => {
+          if (!element.contains(event.target)) {
+            closePreview();
+          }
+        };
+        window.addEventListener('resize', closePreview);
+        document.addEventListener('scroll', scroll, true);
+        document.addEventListener('keydown', escape);
+        return () => {
+          window.removeEventListener('resize', closePreview);
+          document.removeEventListener('scroll', scroll, true);
+          document.removeEventListener('keydown', escape);
+          if (element.matches(':popover-open')) {
+            element.hidePopover();
+          }
+        };
+      }, [preview, draft.text, draft.quotes]);
+      const selectedDraft = () => {
+        const range = selectionRange();
+        if (range === null || range.start === range.end) {
+          return null;
+        }
+        return { ...latest.current, text: latest.current.text.slice(range.start, range.end), quotes: latest.current.quotes.filter((quote) => quote.offset >= range.start && quote.offset < range.end).map((quote) => ({ ...quote, offset: quote.offset - range.start })) };
+      };
+      return h(React.Fragment, null,
+        h('div', { ...handlers, ref: root, className: 'dsh-sidechat-launch-input dsh-sidechat-rich-input', contentEditable: !disabled, suppressContentEditableWarning: true, role: 'textbox', tabIndex: 0, 'aria-multiline': true, 'aria-disabled': disabled, 'aria-label': placeholder, 'data-placeholder': placeholder, 'data-empty': draft.text === '', onKeyDown: (event) => {
+          if (event.target.closest('[data-quote-id]')) {
+            event.stopPropagation();
+            return;
+          }
+          if (!disabled && !composing.current && !event.nativeEvent.isComposing && event.keyCode !== 229 && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && (event.key === 'Backspace' || event.key === 'Delete')) {
+            const next = deleteDraftQuote(latest.current, selectionRange(), event.key === 'Backspace');
+            if (next !== null) {
+              event.preventDefault();
+              event.stopPropagation();
+              applyDraftEdit(next);
+              return;
+            }
+          }
+          handlers.onKeyDown?.(event);
+        }, onInput: sync, onBlur: () => {
+          const range = selectionRange();
+          if (range !== null) {
+            manager.updateComposer(recordId, { caret: range.end });
+          }
+        }, onCompositionStart: (event) => { composing.current = true; handlers.onCompositionStart?.(event); }, onCompositionEnd: (event) => { composing.current = false; sync(); handlers.onCompositionEnd?.(event); }, onPaste: (event) => {
+          handlers.onPaste?.(event);
+          if (!event.defaultPrevented && !disabled) {
+            event.preventDefault();
+            document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
+          }
+        }, onCopy: (event) => {
+          const selected = selectedDraft();
+          if (selected !== null) {
+            event.preventDefault();
+            event.clipboardData.setData('text/plain', serializeQuoteClipboard(selected));
+          }
+        }, onCut: (event) => {
+          const selected = selectedDraft();
+          if (selected !== null && !disabled) {
+            event.preventDefault();
+            event.clipboardData.setData('text/plain', serializeQuoteClipboard(selected));
+            document.execCommand('delete');
+          }
+        }, onPointerDown: (event) => {
+          if (event.target.closest('[data-quote-id]')) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }, onPointerOver: (event) => {
+          if (event.pointerType !== 'touch') {
+            showPreview(event.target.closest('[data-quote-id]'));
+          }
+        }, onPointerOut: (event) => {
+          const chip = event.target.closest('[data-quote-id]');
+          if (chip !== null && !chip.contains(event.relatedTarget) && !previewCard.current.contains(event.relatedTarget)) {
+            leavePreview();
+          }
+        }, onFocus: (event) => {
+          if (event.target.matches(':focus-visible')) {
+            showPreview(event.target.closest('[data-quote-id]'));
+          }
+        }, onClick: (event) => {
+          const remove = event.target.closest('[data-quote-remove]');
+          if (remove !== null && !disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+            const quote = latest.current.quotes.find((item) => item.id === remove.dataset.quoteRemove);
+            applyDraftEdit(removeDraftQuote(latest.current, quote));
+          }
+        } }),
+        h('div', { ref: previewCard, popover: 'manual', className: 'dsh-sidechat-quote-preview', role: 'tooltip', 'aria-label': t('quotePreview'), onPointerEnter: keepPreview, onPointerLeave: leavePreview }, h('div', { className: 'dsh-sidechat-quote-full' }, preview?.text)));
+    }
+
     function NativeConversation(props) {
       const session = props.useSession((snapshot) => snapshot);
       const pendingInteraction = props.useSessionStatus((snapshot) => snapshot.get(props.sessionId)?.pendingInteraction);
@@ -991,6 +1471,45 @@ window.__ModuleLoader__.load({
         const nativeText = ctx.locale.bind('conversation');
         const manager = new Manager(ctx, t);
         ctx.effect(() => () => manager.dispose());
+        function QuoteActions(props) {
+          const layout = props.useStore((snapshot) => snapshot.bySession[props.sessionId]?.layout);
+          const [pending, setPending] = React.useState(false);
+          const [error, setError] = React.useState(null);
+          const quote = async () => {
+            const text = props.readText();
+            if (text === null) {
+              props.dismiss();
+              return;
+            }
+            setPending(true);
+            setError(null);
+            try {
+              const id = await manager.quote(props.sessionId, text, layout);
+              props.clearSelection();
+              props.dismiss();
+              const draft = manager.composer(id).snapshot;
+              manager.updateComposer(id, { focusVersion: draft.focusVersion + 1 });
+            } catch (failure) {
+              setError(errorText(failure));
+              setPending(false);
+            }
+          };
+          return h('div', { className: 'dsh-sidechat-quote-actions' }, h('style', null, uiStyles),
+            h(nativeQuote.component, props),
+            h('button', { type: 'button', className: 'dsh-sidechat-quote-action', disabled: pending || layout === undefined, 'aria-busy': pending, onPointerDown: (event) => event.preventDefault(), onClick: () => { void quote(); } }, t('quoteToSidechat')),
+            error ? h('div', { role: 'alert', style: styles.error }, error) : null);
+        }
+        const nativeQuote = ctx.slots.entries('conversation.chat.text-interaction').find((entry) => entry.options.key === 'quote');
+        const sidebarStore = ctx.slots.entries('rightbar.session').find((entry) => entry.store !== undefined)?.store;
+        if (nativeQuote !== undefined && sidebarStore !== undefined) {
+          function SelectionActions(props) {
+            const sidechat = React.useContext(SidechatContext);
+            const main = props.useSession((session) => !session.removed && session.subagent === null);
+            return sidechat !== null || !main || ctx.sidebarRight.mounted.getSnapshot() !== props.sessionId ? h(nativeQuote.component, props) : h(QuoteActions, props);
+          }
+          // 宿主按 priority 升序选择，包装项必须排在原生引用前面。
+          ctx.slots.inject('conversation.chat.text-interaction', () => ctx.slots.register({ ...nativeQuote.options, name: 'conversation.chat.text-interaction', key: 'quote', priority: (nativeQuote.options.priority ?? 0) - 1, locale: nativeQuote.locale, store: sidebarStore }, SelectionActions));
+        }
         function Guide(props) {
           const state = useParent(manager, props.sessionId);
           const { tab } = props.useTabInfo();
@@ -1402,7 +1921,7 @@ window.__ModuleLoader__.load({
           const selection = record.selection ?? draft.catalog?.selection ?? null;
           const groups = draft.catalog?.models.groups ?? [];
           const currentModel = groups.find((group) => group.id === selection?.provider)?.models.find((model) => model.id === selection?.model);
-          const token = /^\/([^\s/]*)$/u.exec(draft.text.slice(0, cursor));
+          const token = /^\/([^\s/\uFFFC]*)$/u.exec(draft.text.slice(0, cursor));
           const showSkills = !disabled && !dismissedSkills && token !== null;
           const query = (token?.[1] ?? '').toLocaleLowerCase();
           const skills = (draft.catalog?.skills ?? []).filter((skill) => skill.name.toLocaleLowerCase().includes(query) || skill.description.toLocaleLowerCase().includes(query));
@@ -1419,8 +1938,6 @@ window.__ModuleLoader__.load({
           }, []);
           React.useLayoutEffect(() => {
             const element = editor.current;
-            element.style.height = '0px';
-            element.style.height = `${Math.max(36, element.scrollHeight)}px`;
             if (caretAfterEdit.current !== null) {
               element.focus({ preventScroll: true });
               element.setSelectionRange(caretAfterEdit.current, caretAfterEdit.current);
@@ -1442,11 +1959,13 @@ window.__ModuleLoader__.load({
             setDismissedSkills(true);
           };
           const chooseSkill = (skill) => {
-            const leading = /^\/[^\s/]*/u.exec(draft.text);
-            const rest = leading === null ? draft.text : draft.text.slice(leading[0].length).replace(/^\s+/u, '');
+            const leading = /^\/[^\s/]*/u.exec(draft.text.slice(0, draft.quotes[0]?.offset ?? draft.text.length));
+            const end = leading === null ? 0 : leading[0].length + (/^\s*/u.exec(draft.text.slice(leading[0].length))?.[0].length ?? 0);
             const prefix = `/${skill.name} `;
+            const next = replaceDraftRange(draft, 0, end, prefix);
+            manager.updateComposer(record.id, next);
             caretAfterEdit.current = prefix.length;
-            changeText(`${prefix}${rest}`, prefix.length);
+            changeText(next.text, prefix.length);
             closeSkills();
           };
           const skillKey = (event) => {
@@ -1537,7 +2056,7 @@ window.__ModuleLoader__.load({
                     return h('button', { key: skill.name, id: `${skillListId}-${itemIndex}`, type: 'button', role: 'option', tabIndex: -1, 'aria-selected': itemIndex === index, className: 'dsh-sidechat-skill-option', title: description, onMouseDown: (event) => event.preventDefault(), onMouseEnter: () => setActiveSkill(itemIndex), onClick: () => chooseSkill(skill) }, h('span', { className: 'dsh-sidechat-skill-name' }, skill.name), h('span', { className: 'dsh-sidechat-skill-description' }, description));
                   }))) : null,
               draft.attachments.length > 0 ? h(PendingAttachments, { attachments: draft.attachments, disabled, onRemove: (localId) => manager.removeAttachment(record.id, localId), onRetry: (localId) => { void manager.upload(parentId, record.id, localId); } }) : null,
-              h('textarea', { ref: editor, className: 'dsh-sidechat-launch-input', value: draft.text, rows: 1, disabled, placeholder: t('question'), 'aria-label': t('question'), 'aria-expanded': showSkills, 'aria-controls': showSkills ? skillListId : undefined, 'aria-activedescendant': showSkills && skills.length > 0 ? `${skillListId}-${index}` : undefined, onChange: (event) => changeText(event.target.value, event.target.selectionStart), onSelect: (event) => setCursor(event.target.selectionStart), onPaste: (event) => {
+              h(QuoteEditor, { draft, manager, recordId: record.id, editorRef: editor, disabled, placeholder: t('question'), onTextChange: changeText, onCursorChange: setCursor, t, 'aria-expanded': showSkills, 'aria-controls': showSkills ? skillListId : undefined, 'aria-activedescendant': showSkills && skills.length > 0 ? `${skillListId}-${index}` : undefined, onPaste: (event) => {
                 if (event.clipboardData.files.length > 0) {
                   event.preventDefault();
                   addFiles(event.clipboardData.files);

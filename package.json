@@ -1,6 +1,6 @@
 {
   "name": "dsh-sidechat",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "private": true,
   "type": "module",
   "description": "在主会话右侧进行带背景的临时讨论，使用托管子代理与原生标签。",
@@ -25,7 +25,7 @@
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": ["@deepseek-ai/dsh-api-session-controller", "@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-subagent"]
+      "inject": ["@deepseek-ai/dsh-api-session-controller", "@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-subagent", "@deepseek-ai/dsh-message-quotes"]
     }
   }
 }
