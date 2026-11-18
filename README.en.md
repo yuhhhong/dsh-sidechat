@@ -1,5 +1,7 @@
 # dsh-sidechat
 
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/p/yuhhhong/dsh-sidechat/)
+
 [中文](<./README.md>) | English
 
 A side chat plugin for DeepSeek Harness (DSH). It opens temporary side conversations in the right sidebar with a snapshot of the main conversation's background, so you can investigate questions, clarify details, or explore tangents without adding the discussion process to the main conversation context.
@@ -16,13 +18,15 @@ A side chat plugin for DeepSeek Harness (DSH). It opens temporary side conversat
 
 ## Installation
 
-Option 1. Install from GitHub with one command in the DSH web profile:
+**Option 1: Install from the plugin market.** After installing [dsh-market](https://github.com/dsh-market/dsh-market#install), open **Plugins → Plugin Market** in DSH, search for `dsh-sidechat` under **Discover**, and click **Install**.
+
+**Option 2: Install from GitHub using the command line.** Run this command for the DSH web profile:
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-Option 2. In the DSH plugins page, click Add plugin and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>
+**Option 3: Add the plugin manually in DSH.** Open **Plugins**, click **Add plugin**, and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>.
 
 After installation, restart DSH and refresh the DSH page.
 

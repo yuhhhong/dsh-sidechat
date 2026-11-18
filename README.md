@@ -1,5 +1,7 @@
 # dsh-sidechat
 
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com/zh/p/yuhhhong/dsh-sidechat/)
+
 中文 | [English](<./README.en.md>)
 
 DeepSeek Harness（DSH）的侧边聊天插件。在主会话右侧栏打开带有当前背景快照的临时侧聊，用于调研问题、澄清细节或讨论支线，避免把临时讨论过程写入主会话上下文。
@@ -16,13 +18,15 @@ DeepSeek Harness（DSH）的侧边聊天插件。在主会话右侧栏打开带�
 
 ## 安装
 
-方式1. 在 DSH 的 Web profile 中执行一条命令即可从 GitHub 安装：
+**方式 1：通过插件市场安装。** 安装 [dsh-market](https://github.com/dsh-market/dsh-market/blob/main/README.zh.md#安装) 后，在 DSH 中打开「插件 → 插件市场」，在「发现」中搜索 `dsh-sidechat`，点击「安装」。
+
+**方式 2：使用命令行从 GitHub 安装。** 在 DSH 的 Web profile 中执行：
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-方式2. 在 DSH 的插件页中，点击添加插件，填入项目仓库地址：<https://github.com/yuhhhong/dsh-sidechat>
+**方式 3：在 DSH 中手动添加。** 打开「插件」页，点击「添加插件」，填入仓库地址：<https://github.com/yuhhhong/dsh-sidechat>。
 
 安装后重启 DSH 并刷新页面。
 
