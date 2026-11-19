@@ -4,6 +4,14 @@
 
 发布新版本时，先写入该版本的段落，再推送 `v` 前缀标签。
 
+## 0.1.17
+
+- 接入 npm Trusted Publishing：推送版本标签后，由 GitHub Actions 公开发布 `@yuhhhong/dsh-sidechat`，再创建 GitHub Release。
+
+## 0.1.16
+
+- 首次公开发布 `@yuhhhong/dsh-sidechat`，支持从 npm 安装侧聊插件。
+
 ## 0.1.15
 
 - 新增侧聊专用的「默认」权限选项，对应 `workspace-write + never`：允许在工作区内修改文件，需要审批的操作自动拒绝。

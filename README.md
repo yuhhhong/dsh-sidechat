@@ -20,23 +20,29 @@ DeepSeek Harness（DSH）的侧边聊天插件。在主会话右侧栏打开带�
 
 **方式 1：通过插件市场安装。** 安装 [dsh-market](https://github.com/dsh-market/dsh-market/blob/main/README.zh.md#安装) 后，在 DSH 中打开「插件 → 插件市场」，在「发现」中搜索 `dsh-sidechat`，点击「安装」。
 
-**方式 2：使用命令行从 GitHub 安装。** 在 DSH 的 Web profile 中执行：
+**方式 2：使用命令行从 npm 安装。** 在 DSH 的 Web profile 中执行：
+
+```sh
+dsh plugin --profile web add @yuhhhong/dsh-sidechat
+```
+
+**方式 3：使用命令行从 GitHub 安装。**
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-**方式 3：在 DSH 中手动添加。** 打开「插件」页，点击「添加插件」，填入仓库地址：<https://github.com/yuhhhong/dsh-sidechat>。
+**方式 4：在 DSH 中手动添加。** 打开「插件」页，点击「添加插件」，填入仓库地址：<https://github.com/yuhhhong/dsh-sidechat>。
 
 安装后重启 DSH 并刷新页面。
 
 如需卸载：
 
 ```sh
-dsh plugin --profile web remove dsh-sidechat
+dsh plugin --profile web remove @yuhhhong/dsh-sidechat
 ```
 
-当前插件版本为 `0.1.15`，支持的 DSH 版本范围为 `>=0.2.2-rc.2 <0.3.0-0`。
+当前插件版本为 `0.1.17`，支持的 DSH 版本范围为 `>=0.2.2-rc.2 <0.3.0-0`。
 
 ## 使用方式
 
@@ -83,14 +89,16 @@ npm test
 
 分支推送和 PR 会触发 [CI 工作流](<./.github/workflows/ci.yml>)，使用 Node.js 24 运行语法检查和测试。检查使用 Node.js 内置模块，无需安装依赖；需要 Electron 与 DSH 安装目录的宿主集成测试在普通 Node.js 环境中跳过。
 
-发布流程参考 dsh-skill-status：推送 `v` 前缀标签后，[发布工作流](<./.github/workflows/release.yml>) 核对标签与 [package.json](<./package.json>) 的版本，从 [更新日志](<./CHANGELOG.md>) 提取说明，并运行语法检查和测试。全部通过后自动创建 GitHub Release，不附带压缩包。
+推送 `v` 前缀标签后，[发布工作流](<./.github/workflows/release.yml>) 核对标签与 [package.json](<./package.json>) 的版本，从 [更新日志](<./CHANGELOG.md>) 提取说明，并运行语法检查和测试。全部通过后，先打包并公开发布到 npm，再创建 GitHub Release，不附带压缩包。
+
+npm 使用 [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。在 npm 包设置中授权 GitHub Actions（账号 `yuhhhong`、仓库 `dsh-sidechat`、工作流 `release.yml`，允许 `npm publish`，不填 Environment），无需配置 `NPM_TOKEN`。
 
 发布前同步更新包版本、中英文 README 中的当前版本，并在更新日志中写入对应版本的说明，提交后再创建标签。标签与包版本不一致，或更新日志对应段落缺失、为空时，发布会失败。
 
 ```sh
-git tag -a v0.1.15 -m "发布 v0.1.15"
+git tag -a v0.1.17 -m "发布 v0.1.17"
 git push origin main
-git push origin v0.1.15
+git push origin v0.1.17
 ```
 
 以上以当前版本为例，发布后续版本时替换版本号。可在发布前预览 Release 正文：

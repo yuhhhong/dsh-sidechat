@@ -1,5 +1,5 @@
 window.__ModuleLoader__.load({
-  id: 'dsh-sidechat',
+  id: '@yuhhhong/dsh-sidechat',
   factory(require) {
     const React = require('react');
     const h = React.createElement;

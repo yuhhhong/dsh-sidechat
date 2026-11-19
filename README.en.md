@@ -20,23 +20,29 @@ A side chat plugin for DeepSeek Harness (DSH). It opens temporary side conversat
 
 **Option 1: Install from the plugin market.** After installing [dsh-market](https://github.com/dsh-market/dsh-market#install), open **Plugins → Plugin Market** in DSH, search for `dsh-sidechat` under **Discover**, and click **Install**.
 
-**Option 2: Install from GitHub using the command line.** Run this command for the DSH web profile:
+**Option 2: Install from npm using the command line.** Run this command for the DSH web profile:
+
+```sh
+dsh plugin --profile web add @yuhhhong/dsh-sidechat
+```
+
+**Option 3: Install from GitHub using the command line.**
 
 ```sh
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-**Option 3: Add the plugin manually in DSH.** Open **Plugins**, click **Add plugin**, and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>.
+**Option 4: Add the plugin manually in DSH.** Open **Plugins**, click **Add plugin**, and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>.
 
 After installation, restart DSH and refresh the DSH page.
 
 To uninstall:
 
 ```sh
-dsh plugin --profile web remove dsh-sidechat
+dsh plugin --profile web remove @yuhhhong/dsh-sidechat
 ```
 
-The current plugin version is `0.1.15`. The supported DSH version range is `>=0.2.2-rc.2 <0.3.0-0`.
+The current plugin version is `0.1.17`. The supported DSH version range is `>=0.2.2-rc.2 <0.3.0-0`.
 
 ## Usage
 
@@ -83,14 +89,16 @@ After changing Host or client files, exit and restart DSH to republish and reloa
 
 Branch pushes and pull requests trigger the [CI workflow](<./.github/workflows/ci.yml>), which runs syntax checks and tests on Node.js 24. These checks use Node.js built-in modules and require no dependency installation. The host integration test that requires Electron and a DSH installation directory is skipped in a regular Node.js environment.
 
-Following the dsh-skill-status release process, pushing a `v`-prefixed tag triggers the [release workflow](<./.github/workflows/release.yml>). It verifies the tag against the version in [package.json](<./package.json>), extracts the release notes from the [changelog](<./CHANGELOG.md>), and runs syntax checks and tests. Once all checks pass, it creates a GitHub Release without an attached archive.
+Pushing a `v`-prefixed tag triggers the [release workflow](<./.github/workflows/release.yml>). It verifies the tag against the version in [package.json](<./package.json>), extracts the release notes from the [changelog](<./CHANGELOG.md>), and runs syntax checks and tests. Once all checks pass, it packs and publishes the public npm package, then creates a GitHub Release without an attached archive.
+
+The workflow uses npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers/). In the npm package settings, authorize GitHub Actions for owner `yuhhhong`, repository `dsh-sidechat`, and workflow `release.yml`. Allow `npm publish` and leave Environment blank. No `NPM_TOKEN` is needed.
 
 Before releasing, update the package version, the current version in both READMEs, and the corresponding changelog section, then commit the changes before creating the tag. A mismatched tag or a missing or empty changelog section fails the release.
 
 ```sh
-git tag -a v0.1.15 -m "Release v0.1.15"
+git tag -a v0.1.17 -m "Release v0.1.17"
 git push origin main
-git push origin v0.1.15
+git push origin v0.1.17
 ```
 
 The commands above use the current version as an example; replace it for subsequent releases. Preview the Release body before publishing:
