@@ -32,7 +32,7 @@ dsh plugin --profile web add @yuhhhong/dsh-sidechat
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-**Option 4: Add the plugin manually in DSH.** Open **Plugins**, click **Add plugin**, and enter the repository URL: <https://github.com/yuhhhong/dsh-sidechat>.
+**Option 4: Install from npm in DSH.** Open **Plugins**, click **Add plugin**, and enter the npm package name `@yuhhhong/dsh-sidechat`.
 
 After installation, restart DSH and refresh the DSH page.
 

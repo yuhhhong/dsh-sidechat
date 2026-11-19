@@ -32,7 +32,7 @@ dsh plugin --profile web add @yuhhhong/dsh-sidechat
 dsh plugin --profile web add github:yuhhhong/dsh-sidechat
 ```
 
-**方式 4：在 DSH 中手动添加。** 打开「插件」页，点击「添加插件」，填入仓库地址：<https://github.com/yuhhhong/dsh-sidechat>。
+**方式 4：在 DSH 中从 npm 安装。** 打开「插件」页，点击「添加插件」，输入 npm 包名 `@yuhhhong/dsh-sidechat`。
 
 安装后重启 DSH 并刷新页面。
 
